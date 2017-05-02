@@ -1,3 +1,4 @@
+from .utils import *
 import subprocess
 
 
@@ -14,8 +15,12 @@ class IO(object):
 
             input_suffix = kwargs.get("input_suffix", ".in")
             output_suffix = kwargs.get("output_suffix", ".out")
+            disable_output = kwargs.get("disable_output", False)
             self.input_filename = filename_prefix + input_suffix
-            self.output_filename = filename_prefix + output_suffix
+            self.output_filename = filename_prefix + output_suffix if not disable_output else None
+        elif len(args) == 1:
+            self.input_filename = args[0]
+            self.output_filename = None
         elif len(args) == 2:
             self.input_filename = args[0]
             self.output_filename = args[1]
@@ -23,7 +28,7 @@ class IO(object):
             raise Exception("Invalid argument count")
 
         self.input_file = open(self.input_filename, 'w')
-        self.output_file = open(self.output_filename, 'w')
+        self.output_file = open(self.output_filename, 'w') if self.output_filename else None
 
     def __del__(self):
         try:
@@ -33,19 +38,23 @@ class IO(object):
             pass
 
     @staticmethod
-    def __write(file, *args):
+    def __write(file, *args, **kwargs):
+        separator = kwargs.get("separator", " ")
         for arg in args:
-            file.write(str(arg))
-            if arg != "\n":
-                file.write(" ")
+            if list_like(arg):
+                IO.__write(file, *arg, **kwargs)
+            else:
+                file.write(str(arg))
+                if arg != "\n":
+                    file.write(separator)
 
-    def write(self, *args):
-        IO.__write(self.input_file, *args)
+    def input_write(self, *args, **kwargs):
+        IO.__write(self.input_file, *args, **kwargs)
 
-    def writeln(self, *args):
+    def input_writeln(self, *args, **kwargs):
         args = list(args)
         args.append("\n")
-        self.write(*args)
+        self.input_write(*args, **kwargs)
 
     def output_gen(self, shell_cmd):
         self.input_file.close()
@@ -54,10 +63,10 @@ class IO(object):
 
         self.input_file = open(self.input_filename, 'a')
 
-    def output_write(self, *args):
-        IO.__write(self.output_file, *args)
+    def output_write(self, *args, **kwargs):
+        IO.__write(self.output_file, *args, **kwargs)
 
-    def output_writeln(self, *args):
+    def output_writeln(self, *args, **kwargs):
         args = list(args)
         args.append("\n")
-        self.output_write(*args)
+        self.output_write(*args, **kwargs)
