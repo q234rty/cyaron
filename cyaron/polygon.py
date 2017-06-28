@@ -1,7 +1,9 @@
+from __future__ import absolute_import
 from .utils import *
 from .consts import *
 import random
 import math
+
 
 class Polygon:
     def __init__(self,points=[]):
@@ -32,7 +34,7 @@ class Polygon:
             ans = ans + a[0] * b[1] - a[1] * b[0]
         if ans < 0:
             ans = -ans
-        ans = ans / 2
+        ans = ans / 2.0
         return ans
 
     #generate a convex hull with n points
@@ -42,6 +44,7 @@ class Polygon:
         # fx, fy are functions which map [0,1] to int or float
         fx = kwargs.get("fx", lambda x: x)
         fy = kwargs.get("fy", lambda x: x)
+        strict = kwargs.get("strict", False)
         sz = n * 2
         result = []
         while len(result) < n:
@@ -72,8 +75,9 @@ class Polygon:
                     a = st[len(st) - 1]
                     b = points[i]
                     o = st[len(st) - 2]
-                    if (a[0] - o[0]) * (b[1] - o[1]) - \
-                            (a[1] - o[1]) * (b[0] - o[0]) >= 0:
+                    tmp = (a[0] - o[0]) * (b[1] - o[1]) - \
+                            (a[1] - o[1]) * (b[0] - o[0])
+                    if tmp > 0 or (tmp == 0 and not strict):
                         break
                     st.pop()
                 st.append(points[i])
@@ -83,8 +87,9 @@ class Polygon:
                     a = st[len(st) - 1]
                     b = points[i]
                     o = st[len(st) - 2]
-                    if (a[0] - o[0]) * (b[1] - o[1]) - \
-                            (a[1] - o[1]) * (b[0] - o[0]) >= 0:
+                    tmp = (a[0] - o[0]) * (b[1] - o[1]) - \
+                            (a[1] - o[1]) * (b[0] - o[0])
+                    if tmp > 0 or (tmp == 0 and not strict):
                         break
                     st.pop()
                 st.append(points[i])
